@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import {InjectModel} from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { Product, ProductDocument } from './product.schemas';
+import { Product, ProductDocument } from '../schemas/product.schemas';
 import { CreateProductDto } from '../dto/product.dto';
 import { UpdateProductDto } from '../dto/update.dto';
 
@@ -23,7 +23,7 @@ export class ProductsService {
 
     async getAllProducts(filterDto: ProductFilterDto): Promise<Product[]>{
         const filter:Record<string,any> ={};
-        
+
         if(filterDto.name){
             filter.name = { $regex: filterDto.name, $options: 'i' };
         }

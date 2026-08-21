@@ -10,8 +10,8 @@ import { JwtService } from '@nestjs/jwt';
 import { Model } from 'mongoose';
 import * as bcrypt from 'bcrypt';
 
-import { User, UserDocument } from './schemas/user.schemas';
-import { Role, RoleDocument } from '../role/schema/role.schemas';
+import { User, UserDocument } from '../schemas/user.schemas';
+import { Role, RoleDocument } from '../schemas/role.schemas';
 import { RegisterDto } from '../dto/register.dto';
 import { LoginDto } from '../dto/login.dto';
 import {

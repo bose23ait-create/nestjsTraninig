@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import {RoleSchema} from './schema/role.schemas'
+import {RoleSchema} from '../schemas/role.schemas'
 import { MongooseModule } from '@nestjs/mongoose';
 
 @Module({

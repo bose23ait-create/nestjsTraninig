@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 
-import { User, UserSchema } from '../users/schemas/user.schemas';
-import { Role, RoleSchema } from '../role/schema/role.schemas';
+import { User, UserSchema } from '../schemas/user.schemas';
+import { Role, RoleSchema } from '../schemas/role.schemas';
 
 import { SeedService } from './seed.service';
 

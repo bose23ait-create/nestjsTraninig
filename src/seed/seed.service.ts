@@ -3,11 +3,11 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import * as bcrypt from 'bcrypt';
 
-import { User, UserDocument } from '../users/schemas/user.schemas';
-import { Role, RoleDocument } from '../role/schema/role.schemas';
+import { User, UserDocument } from '../schemas/user.schemas';
+import { Role, RoleDocument } from '../schemas/role.schemas';
 
-import { userSeed } from '../users/seeds/user.seed';
-import { roleSeed } from '../role/seeds/role.seed';
+import { userSeed } from './user.seed';
+import { roleSeed } from './role.seed';
 
 @Injectable()
 export class SeedService {

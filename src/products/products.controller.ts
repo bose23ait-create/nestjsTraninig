@@ -9,6 +9,7 @@ import {
     Put,
     UploadedFiles,
     UseInterceptors,
+    UseGuards,
 } from '@nestjs/common';
 
 import { randomUUID } from 'crypto';
@@ -22,6 +23,10 @@ import { Product } from './product.schemas';
 import { UpdateProductDto } from '../dto/update.dto';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
+import { ADMIN_ROLE } from '../constants/users.constants';
 
 const productImageUpload = FilesInterceptor('images', 5, {
     storage: diskStorage({
@@ -49,6 +54,8 @@ export class ProductsController {
     constructor(private readonly productsService: ProductsService) {}
 
     @Post()
+        @UseGuards(JwtAuthGuard, RolesGuard)
+        @Roles(ADMIN_ROLE)
         @UseInterceptors(productImageUpload)
         async createProduct(
             @Body() createProductDto: CreateProductDto,
@@ -67,16 +74,20 @@ export class ProductsController {
     }
 
     @Get()
+    @UseGuards(JwtAuthGuard)
     async getAllProducts(): Promise<Product[]>{
         return this.productsService.getAllProducts();
     }
 
     @Get(':id')
+    @UseGuards(JwtAuthGuard)
     async getProductById(@Param('id') id: string): Promise<Product | null> {
         return this.productsService.getProductById(id);
     }
 
     @Put(':id')
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(ADMIN_ROLE)
     @UseInterceptors(productImageUpload)
     async updateProduct(
         @Param('id') id: string,
@@ -96,6 +107,8 @@ export class ProductsController {
     }
 
     @Delete(':id')
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(ADMIN_ROLE)
     async deleteProduct(@Param('id') id: string): Promise<Product | null> {
         return this.productsService.deleteProduct(id);
     }

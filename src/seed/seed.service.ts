@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import * as bcrypt from 'bcrypt';
 
 import { User, UserDocument } from '../users/schemas/user.schemas';
 import { Role, RoleDocument } from '../role/schema/role.schemas';
@@ -33,7 +34,23 @@ export class SeedService {
     const userCount = await this.userModel.countDocuments();
 
     if (userCount === 0) {
-      await this.userModel.insertMany(userSeed);
+      const users = await Promise.all(
+        userSeed.map(async (seedUser) => {
+          const role = await this.roleModel.findOne({ name: seedUser.role });
+
+          if (!role) {
+            throw new Error(`Role not found: ${seedUser.role}`);
+          }
+
+          return {
+            ...seedUser,
+            password: await bcrypt.hash(seedUser.password, 10),
+            role: role._id,
+          };
+        }),
+      );
+
+      await this.userModel.insertMany(users);
       console.log('User seed inserted successfully');
     } else {
       console.log('Users already exist');

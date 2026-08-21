@@ -1,10 +1,17 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
+import { JwtModule } from '@nestjs/jwt';
 import { Product, ProductSchema } from './product.schemas';
 import { ProductsService } from './products.service';
 import { ProductsController } from './products.controller';
+import { AUTH_CONFIG } from '../constants/users.constants';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RolesGuard } from '../auth/roles.guard';
 @Module({
   imports: [
+    JwtModule.register({
+      secret: process.env.JWT_SECRET || AUTH_CONFIG.fallbackSecret,
+    }),
     MongooseModule.forFeature([
       {
         name: Product.name,
@@ -12,7 +19,7 @@ import { ProductsController } from './products.controller';
       },
     ]),
   ],
-  providers: [ProductsService],
+  providers: [ProductsService, JwtAuthGuard, RolesGuard],
   controllers: [ProductsController],
 })
 export class ProductsModule {}

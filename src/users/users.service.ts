@@ -86,10 +86,15 @@ export class UsersService {
         throw new UnauthorizedException(USER_MESSAGES.invalidCredentials);
       }
 
+      const role = await this.roleModel.findById(user.role).lean();
+      if (!role) {
+        throw new UnauthorizedException(USER_MESSAGES.roleNotSeeded);
+      }
+
       const payload = {
         sub: user._id,
         email: user.email,
-        role: user.role,
+        role: role.name,
       };
 
       return {

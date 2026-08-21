@@ -6,10 +6,11 @@ import { StudentsModule } from './students/students.module';
 import { UsersModule } from './users/users.module';
 import { RoleModule } from './role/role.module';
 import { SeedModule } from './seed/seed.module';
+import { ProductsModule } from './products/products.module';
 
 
 @Module({
-  imports: [MongooseModule.forRoot('mongodb://localhost:27017/api'), StudentsModule, UsersModule, RoleModule, SeedModule],
+  imports: [MongooseModule.forRoot('mongodb://localhost:27017/api'), StudentsModule, UsersModule, RoleModule, SeedModule, ProductsModule],
   controllers: [AppController],
   providers: [AppService],
 })

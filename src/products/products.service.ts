@@ -5,6 +5,8 @@ import { Product, ProductDocument } from './product.schemas';
 import { CreateProductDto } from '../dto/product.dto';
 import { UpdateProductDto } from '../dto/update.dto';
 
+import { ProductFilterDto } from '../dto/filter.dto';
+
 @Injectable()
 export class ProductsService {
   constructor(
@@ -19,8 +21,29 @@ export class ProductsService {
         return createdProduct.save();
     }
 
-    async getAllProducts(): Promise<Product[]>{
-        const products = await this.productModel.find().exec();
+    async getAllProducts(filterDto: ProductFilterDto): Promise<Product[]>{
+        const filter:Record<string,any> ={};
+        
+        if(filterDto.name){
+            filter.name = { $regex: filterDto.name, $options: 'i' };
+        }
+
+        if(filterDto.createdDate){
+            const startDate = new Date(filterDto.createdDate);
+            const endDate = new Date(startDate);
+            endDate.setDate(endDate.getDate() + 1);
+            filter.createdAt = { $gte: startDate, $lt: endDate };
+        }
+
+        if (filterDto.stockAvailable !== undefined) {
+            if (filterDto.stockAvailable === 'true') {
+                filter.stock = { $gt: 0 };
+            } else {
+                filter.stock = { $eq: 0 };
+            }
+        }
+
+        const products = await this.productModel.find(filter).exec();
         return products;
     }
 

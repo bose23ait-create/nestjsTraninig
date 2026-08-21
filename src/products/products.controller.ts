@@ -10,12 +10,14 @@ import {
     UploadedFiles,
     UseInterceptors,
     UseGuards,
+    Query,
 } from '@nestjs/common';
+
+import {ProductFilterDto} from '../dto/filter.dto';
 
 import { randomUUID } from 'crypto';
 import { mkdirSync } from 'fs';
 import { extname } from 'path';
-import type { Express } from 'express';
 import 'multer';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from '../dto/product.dto';
@@ -75,8 +77,8 @@ export class ProductsController {
 
     @Get()
     @UseGuards(JwtAuthGuard)
-    async getAllProducts(): Promise<Product[]>{
-        return this.productsService.getAllProducts();
+    async getAllProducts(@Query() filterDto: ProductFilterDto): Promise<Product[]>{
+        return this.productsService.getAllProducts(filterDto);
     }
 
     @Get(':id')

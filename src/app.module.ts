@@ -9,9 +9,13 @@ import { ProductsModule } from './modules/products.module';
 
 import {LoggerMiddleware} from './common/middleware/logger.middleware';
 
+import {ConfigModule} from '@nestjs/config'
+import {MailModule} from './modules/mail.module';
+
+
 
 @Module({
-  imports: [MongooseModule.forRoot('mongodb://localhost:27017/api'), UsersModule, RoleModule, SeedModule, ProductsModule],
+  imports: [ ConfigModule.forRoot({isGlobal: true}),MongooseModule.forRoot('mongodb://localhost:27017/api'), UsersModule, RoleModule, SeedModule, ProductsModule, MailModule],
   controllers: [AppController],
   providers: [AppService],
 })

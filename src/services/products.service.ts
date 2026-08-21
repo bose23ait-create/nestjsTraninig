@@ -14,15 +14,20 @@ export class ProductsService {
   ) {}
 
     async createProduct(createProductDto: CreateProductDto): Promise<Product> {
+        try {
                 const createdProduct = new this.productModel({
                     ...createProductDto,
                     images: createProductDto.images ?? [],
                 });
-        return createdProduct.save();
+            return createdProduct.save();
+        } catch (error) {
+            throw error;
+        }
     }
 
     async getAllProducts(filterDto: ProductFilterDto): Promise<Product[]>{
-        const filter:Record<string,any> ={};
+        try {
+            const filter:Record<string,any> ={};
 
         if(filterDto.name){
             filter.name = { $regex: filterDto.name, $options: 'i' };
@@ -43,23 +48,38 @@ export class ProductsService {
             }
         }
 
-        const products = await this.productModel.find(filter).exec();
-        return products;
+            const products = await this.productModel.find(filter).exec();
+            return products;
+        } catch (error) {
+            throw error;
+        }
     }
 
     async getProductById(id: string): Promise<Product | null> {
-        const product = await this.productModel.findById(id).exec();
-        return product;
+        try {
+            const product = await this.productModel.findById(id).exec();
+            return product;
+        } catch (error) {
+            throw error;
+        }
     }
 
     async updateProduct(id: string, updateProductDto: UpdateProductDto): Promise<Product | null>{
-        const updatedProduct = await this.productModel.findByIdAndUpdate(id, updateProductDto, { new: true }).exec();
-        return updatedProduct;
+        try {
+            const updatedProduct = await this.productModel.findByIdAndUpdate(id, updateProductDto, { new: true }).exec();
+            return updatedProduct;
+        } catch (error) {
+            throw error;
+        }
     }
 
     async deleteProduct(id: string): Promise<Product | null>{
-        const deletedProduct = await this.productModel.findByIdAndDelete(id).exec();
-        return deletedProduct;
+        try {
+            const deletedProduct = await this.productModel.findByIdAndDelete(id).exec();
+            return deletedProduct;
+        } catch (error) {
+            throw error;
+        }
     }
 
     

@@ -63,6 +63,7 @@ export class ProductsController {
             @Body() createProductDto: CreateProductDto,
             @UploadedFiles() images: Express.Multer.File[] = [],
         ): Promise<Product> {
+            try {
                 if (images.length === 0) {
                     throw new BadRequestException(
                         'At least one image must be uploaded using the images field',
@@ -72,19 +73,30 @@ export class ProductsController {
                 const imagePaths = images.map(
                     (file) => `/uploads/products/${file.filename}`,
                 );
-        return this.productsService.createProduct({ ...createProductDto, images: imagePaths });
+                return this.productsService.createProduct({ ...createProductDto, images: imagePaths });
+            } catch (error) {
+                throw error;
+            }
     }
 
     @Get()
     @UseGuards(JwtAuthGuard)
     async getAllProducts(@Query() filterDto: ProductFilterDto): Promise<Product[]>{
-        return this.productsService.getAllProducts(filterDto);
+        try {
+            return this.productsService.getAllProducts(filterDto);
+        } catch (error) {
+            throw error;
+        }
     }
 
     @Get(':id')
     @UseGuards(JwtAuthGuard)
     async getProductById(@Param('id') id: string): Promise<Product | null> {
-        return this.productsService.getProductById(id);
+        try {
+            return this.productsService.getProductById(id);
+        } catch (error) {
+            throw error;
+        }
     }
 
     @Put(':id')
@@ -96,22 +108,30 @@ export class ProductsController {
         @Body() updateProductDto: UpdateProductDto,
         @UploadedFiles() images: Express.Multer.File[] = [],
     ): Promise<Product | null> {
-        const updateData = images.length > 0
-            ? {
-                ...updateProductDto,
-                images: images.map(
-                    (file) => `/uploads/products/${file.filename}`,
-                ),
-            }
-            : updateProductDto;
+        try {
+            const updateData = images.length > 0
+                ? {
+                    ...updateProductDto,
+                    images: images.map(
+                        (file) => `/uploads/products/${file.filename}`,
+                    ),
+                }
+                : updateProductDto;
 
-        return this.productsService.updateProduct(id, updateData);
+            return this.productsService.updateProduct(id, updateData);
+        } catch (error) {
+            throw error;
+        }
     }
 
     @Delete(':id')
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles(ADMIN_ROLE)
     async deleteProduct(@Param('id') id: string): Promise<Product | null> {
-        return this.productsService.deleteProduct(id);
+        try {
+            return this.productsService.deleteProduct(id);
+        } catch (error) {
+            throw error;
+        }
     }
 }

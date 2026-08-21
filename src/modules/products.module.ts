@@ -7,6 +7,7 @@ import { ProductsController } from '../controllers/products.controller';
 import { AUTH_CONFIG } from '../constants/users.constants';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
+import { ProductCronService } from '../cron/product.cron';
 @Module({
   imports: [
     JwtModule.register({
@@ -19,7 +20,7 @@ import { RolesGuard } from '../auth/roles.guard';
       },
     ]),
   ],
-  providers: [ProductsService, JwtAuthGuard, RolesGuard],
+  providers: [ProductsService, JwtAuthGuard, RolesGuard, ProductCronService],
   controllers: [ProductsController],
 })
 export class ProductsModule {}

@@ -20,4 +20,7 @@ async function bootstrap() {
   await app.close();
 }
 
-bootstrap();
+void bootstrap().catch((error: unknown) => {
+  console.error('Seeding failed:', error);
+  process.exitCode = 1;
+});

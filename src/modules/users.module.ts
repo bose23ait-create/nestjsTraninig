@@ -26,7 +26,8 @@ import { AUTH_CONFIG } from '../constants/users.constants';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_SECRET') || AUTH_CONFIG.fallbackSecret,
+        secret:
+          configService.get<string>('JWT_SECRET') || AUTH_CONFIG.fallbackSecret,
         signOptions: { expiresIn: AUTH_CONFIG.tokenExpiry },
       }),
     }),

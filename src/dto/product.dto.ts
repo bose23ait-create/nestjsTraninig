@@ -8,7 +8,6 @@ import {
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
-
 export class CreateProductDto {
   @IsString()
   @IsNotEmpty()

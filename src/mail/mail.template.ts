@@ -214,6 +214,13 @@ export const productCreatedTemplate = (
 
             </div>
 
+            <!-- Attached Images -->
+
+            <div style="margin-top: 25px;">
+              <h3 style="color: #111827;">Attached product images</h3>
+              ${imageList}
+            </div>
+
             <!-- Success -->
 
             <div style="

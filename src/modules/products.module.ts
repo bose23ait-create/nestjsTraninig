@@ -17,7 +17,8 @@ import { BullModule } from '@nestjs/bullmq';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_SECRET') || AUTH_CONFIG.fallbackSecret,
+        secret:
+          configService.get<string>('JWT_SECRET') || AUTH_CONFIG.fallbackSecret,
       }),
     }),
     MongooseModule.forFeature([

@@ -18,26 +18,26 @@ export class MailService {
     },
   });
 
-  async sendMail(
-    to: string,
-    name: string,
-    product?: ProductEmailData,
-  ) {
+  async sendMail(to: string, name: string, product?: ProductEmailData) {
     try {
       const mailOptions = {
         from: process.env.MAIL_USER,
         to,
         subject: product ? 'Product added successfully' : 'Test Email',
-        html: product ? productCreatedTemplate(name, product) : welcomeTemplate(name),
+        html: product
+          ? productCreatedTemplate(name, product)
+          : welcomeTemplate(name),
         attachments: product
           ? product.images.map((image) => ({
               filename: image.split('/').pop(),
               path: join(process.cwd(), image.replace(/^\//, '')),
             }))
-          : [{
-              filename: 'pdf-test.pdf',
-              path: './src/mail/attachments/pdf-test.pdf',
-            }],
+          : [
+              {
+                filename: 'pdf-test.pdf',
+                path: './src/mail/attachments/pdf-test.pdf',
+              },
+            ],
       };
 
       await this.transporter.sendMail(mailOptions);

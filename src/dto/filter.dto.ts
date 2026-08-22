@@ -1,4 +1,9 @@
-import { IsBooleanString, IsDateString, IsOptional, IsString } from 'class-validator';
+import {
+  IsBooleanString,
+  IsDateString,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 
 export class ProductFilterDto {
   @IsOptional()

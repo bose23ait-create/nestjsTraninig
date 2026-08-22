@@ -15,11 +15,11 @@ export class ProductCronService {
   //mon-fri at 11:30 am
   // seconds minutes hours day-of-month month day-of-week
 
-  @Cron('0 30 11 * * 1-5',{
-    name:'update Stock',
-    timeZone:'Asia/Kolkata',
-    disabled:true,
-    waitForCompletion:true
+  @Cron('0 30 11 * * 1-5', {
+    name: 'update Stock',
+    timeZone: 'Asia/Kolkata',
+    disabled: true,
+    waitForCompletion: true,
   })
   async updateProductQuantity() {
     try {
@@ -40,4 +40,3 @@ export class ProductCronService {
     }
   }
 }
-

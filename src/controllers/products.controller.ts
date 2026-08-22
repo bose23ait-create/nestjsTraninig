@@ -1,20 +1,20 @@
 import {
-    BadRequestException,
-    Body,
-    Controller,
-    Delete,
-    Get,
-    Param,
-    Post,
-    Put,
-    Req,
-    UploadedFiles,
-    UseInterceptors,
-    UseGuards,
-    Query,
+  BadRequestException,
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  Put,
+  Req,
+  UploadedFiles,
+  UseInterceptors,
+  UseGuards,
+  Query,
 } from '@nestjs/common';
 
-import {ProductFilterDto} from '../dto/filter.dto';
+import { ProductFilterDto } from '../dto/filter.dto';
 
 import { randomUUID } from 'crypto';
 import { mkdirSync } from 'fs';
@@ -35,138 +35,142 @@ import { Queue } from 'bullmq';
 import type { AuthenticatedRequest } from '../auth/jwt-auth.guard';
 
 const productImageUpload = FilesInterceptor('images', 5, {
-    storage: diskStorage({
-        destination: (_request, _file, callback) => {
-            const uploadDirectory = './uploads/products';
-            mkdirSync(uploadDirectory, { recursive: true });
-            callback(null, uploadDirectory);
-        },
-        filename: (_request, file, callback) => {
-            callback(null, `${randomUUID()}${extname(file.originalname)}`);
-        },
-    }),
-    fileFilter: (_request, file, callback) => {
-        if (file.mimetype.startsWith('image/')) {
-            callback(null, true);
-            return;
-        }
-
-        callback(new Error('Only image files are allowed'), false);
+  storage: diskStorage({
+    destination: (_request, _file, callback) => {
+      const uploadDirectory = './uploads/products';
+      mkdirSync(uploadDirectory, { recursive: true });
+      callback(null, uploadDirectory);
     },
+    filename: (_request, file, callback) => {
+      callback(null, `${randomUUID()}${extname(file.originalname)}`);
+    },
+  }),
+  fileFilter: (_request, file, callback) => {
+    if (file.mimetype.startsWith('image/')) {
+      callback(null, true);
+      return;
+    }
+
+    callback(new Error('Only image files are allowed'), false);
+  },
 });
 
 @Controller('products')
 export class ProductsController {
-    constructor(
-        private readonly productsService: ProductsService,
-        @InjectQueue('email') private readonly emailQueue: Queue,
-    ) {}
+  constructor(
+    private readonly productsService: ProductsService,
+    @InjectQueue('email') private readonly emailQueue: Queue,
+  ) {}
 
-    @Post()
-        @UseGuards(JwtAuthGuard, RolesGuard)
-        @Roles(ADMIN_ROLE)
-        @UseInterceptors(productImageUpload)
-        async createProduct(
-            @Body() createProductDto: CreateProductDto,
-            @UploadedFiles() images: Express.Multer.File[] = [],
-            @Req() request: AuthenticatedRequest,
-        ): Promise<Product> {
-            try {
-                if (images.length === 0) {
-                    throw new BadRequestException(
-                        'At least one image must be uploaded using the images field',
-                    );
-                }
-
-                const imagePaths = images.map(
-                    (file) => `/uploads/products/${file.filename}`,
-                );
-                const product = await this.productsService.createProduct({
-                    ...createProductDto,
-                    images: imagePaths,
-                });
-
-                await this.emailQueue.add('send-email', {
-                    to: request.user?.email,
-                    name: request.user?.email,
-                    product: {
-                        name: createProductDto.name,
-                        description: createProductDto.description,
-                        price: createProductDto.price,
-                        stock: createProductDto.stock,
-                        images: imagePaths,
-                    },
-                },
-            {
-                attempts: 3,
-                backoff:{
-                    delay: 10000,
-                    type: 'fixed',
-                },
-                priority: 1
-
-            }
+  @Post()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(ADMIN_ROLE)
+  @UseInterceptors(productImageUpload)
+  async createProduct(
+    @Body() createProductDto: CreateProductDto,
+    @UploadedFiles() images: Express.Multer.File[] = [],
+    @Req() request: AuthenticatedRequest,
+  ): Promise<Product> {
+    try {
+      if (images.length === 0) {
+        throw new BadRequestException(
+          'At least one image must be uploaded using the images field',
         );
+      }
 
-                return product;
-            } catch (error) {
-                throw error;
+      const imagePaths = images.map(
+        (file) => `/uploads/products/${file.filename}`,
+      );
+      const product = await this.productsService.createProduct({
+        ...createProductDto,
+        images: imagePaths,
+      });
+
+      await this.emailQueue.add(
+        'send-email',
+        {
+          to: request.user?.email,
+          name: request.user?.email,
+          product: {
+            name: createProductDto.name,
+            description: createProductDto.description,
+            price: createProductDto.price,
+            stock: createProductDto.stock,
+            images: imagePaths,
+          },
+        },
+        {
+          attempts: 3,
+          backoff: {
+            delay: 10000,
+            type: 'fixed',
+          },
+          priority: 1,
+        },
+      );
+
+      return product;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  @Get()
+  @UseGuards(JwtAuthGuard)
+  async getAllProducts(
+    @Query() filterDto: ProductFilterDto,
+  ): Promise<Product[]> {
+    try {
+      return this.productsService.getAllProducts(filterDto);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  @Get(':id')
+  @UseGuards(JwtAuthGuard)
+  async getProductById(@Param('id') id: string): Promise<Product | null> {
+    try {
+      return this.productsService.getProductById(id);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  @Put(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(ADMIN_ROLE)
+  @UseInterceptors(productImageUpload)
+  async updateProduct(
+    @Param('id') id: string,
+    @Body() updateProductDto: UpdateProductDto,
+    @UploadedFiles() images: Express.Multer.File[] = [],
+  ): Promise<Product | null> {
+    try {
+      const updateData =
+        images.length > 0
+          ? {
+              ...updateProductDto,
+              images: images.map(
+                (file) => `/uploads/products/${file.filename}`,
+              ),
             }
-    }
+          : updateProductDto;
 
-    @Get()
-    @UseGuards(JwtAuthGuard)
-    async getAllProducts(@Query() filterDto: ProductFilterDto): Promise<Product[]>{
-        try {
-            return this.productsService.getAllProducts(filterDto);
-        } catch (error) {
-            throw error;
-        }
+      return this.productsService.updateProduct(id, updateData);
+    } catch (error) {
+      throw error;
     }
+  }
 
-    @Get(':id')
-    @UseGuards(JwtAuthGuard)
-    async getProductById(@Param('id') id: string): Promise<Product | null> {
-        try {
-            return this.productsService.getProductById(id);
-        } catch (error) {
-            throw error;
-        }
+  @Delete(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(ADMIN_ROLE)
+  async deleteProduct(@Param('id') id: string): Promise<Product | null> {
+    try {
+      return this.productsService.deleteProduct(id);
+    } catch (error) {
+      throw error;
     }
-
-    @Put(':id')
-    @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles(ADMIN_ROLE)
-    @UseInterceptors(productImageUpload)
-    async updateProduct(
-        @Param('id') id: string,
-        @Body() updateProductDto: UpdateProductDto,
-        @UploadedFiles() images: Express.Multer.File[] = [],
-    ): Promise<Product | null> {
-        try {
-            const updateData = images.length > 0
-                ? {
-                    ...updateProductDto,
-                    images: images.map(
-                        (file) => `/uploads/products/${file.filename}`,
-                    ),
-                }
-                : updateProductDto;
-
-            return this.productsService.updateProduct(id, updateData);
-        } catch (error) {
-            throw error;
-        }
-    }
-
-    @Delete(':id')
-    @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles(ADMIN_ROLE)
-    async deleteProduct(@Param('id') id: string): Promise<Product | null> {
-        try {
-            return this.productsService.deleteProduct(id);
-        } catch (error) {
-            throw error;
-        }
-    }
+  }
 }

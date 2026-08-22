@@ -56,7 +56,8 @@ export class UsersService {
         role: userRole._id,
       });
 
-      const { password: _password, ...safeUser } = user.toObject();
+      const safeUser = user.toObject();
+      Reflect.deleteProperty(safeUser, 'password');
       return safeUser;
     } catch (error) {
       if (

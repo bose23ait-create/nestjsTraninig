@@ -14,8 +14,26 @@ import {MailModule} from './modules/mail.module';
 
 import {ScheduleModule} from '@nestjs/schedule'
 
+import {BullModule} from '@nestjs/bullmq'
+
+
 @Module({
-  imports: [ScheduleModule.forRoot(), ConfigModule.forRoot({isGlobal: true}), MongooseModule.forRoot('mongodb://localhost:27017/api'), UsersModule, RoleModule, SeedModule, ProductsModule, MailModule],
+  imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
+    MongooseModule.forRoot(process.env.MONGODB_URI || 'mongodb://localhost:27017/api'),
+    BullModule.forRoot({
+      connection:{
+        host: process.env.REDIS_HOST || 'localhost',
+        port: parseInt(process.env.REDIS_PORT ?? '6379', 10),
+      }
+    }),
+    ScheduleModule.forRoot(),
+    UsersModule,
+    RoleModule,
+    SeedModule,
+    ProductsModule,
+    MailModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })

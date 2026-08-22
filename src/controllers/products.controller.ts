@@ -7,6 +7,7 @@ import {
     Param,
     Post,
     Put,
+    Req,
     UploadedFiles,
     UseInterceptors,
     UseGuards,
@@ -29,6 +30,9 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
 import { ADMIN_ROLE } from '../constants/users.constants';
+import { InjectQueue } from '@nestjs/bullmq';
+import { Queue } from 'bullmq';
+import type { AuthenticatedRequest } from '../auth/jwt-auth.guard';
 
 const productImageUpload = FilesInterceptor('images', 5, {
     storage: diskStorage({
@@ -53,7 +57,10 @@ const productImageUpload = FilesInterceptor('images', 5, {
 
 @Controller('products')
 export class ProductsController {
-    constructor(private readonly productsService: ProductsService) {}
+    constructor(
+        private readonly productsService: ProductsService,
+        @InjectQueue('email') private readonly emailQueue: Queue,
+    ) {}
 
     @Post()
         @UseGuards(JwtAuthGuard, RolesGuard)
@@ -62,6 +69,7 @@ export class ProductsController {
         async createProduct(
             @Body() createProductDto: CreateProductDto,
             @UploadedFiles() images: Express.Multer.File[] = [],
+            @Req() request: AuthenticatedRequest,
         ): Promise<Product> {
             try {
                 if (images.length === 0) {
@@ -73,7 +81,34 @@ export class ProductsController {
                 const imagePaths = images.map(
                     (file) => `/uploads/products/${file.filename}`,
                 );
-                return this.productsService.createProduct({ ...createProductDto, images: imagePaths });
+                const product = await this.productsService.createProduct({
+                    ...createProductDto,
+                    images: imagePaths,
+                });
+
+                await this.emailQueue.add('send-email', {
+                    to: request.user?.email,
+                    name: request.user?.email,
+                    product: {
+                        name: createProductDto.name,
+                        description: createProductDto.description,
+                        price: createProductDto.price,
+                        stock: createProductDto.stock,
+                        images: imagePaths,
+                    },
+                },
+            {
+                attempts: 3,
+                backoff:{
+                    delay: 10000,
+                    type: 'fixed',
+                },
+                priority: 1
+
+            }
+        );
+
+                return product;
             } catch (error) {
                 throw error;
             }

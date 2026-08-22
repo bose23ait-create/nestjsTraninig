@@ -1,6 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
-import {welcomeTemplate} from '../mail/mail.template'
+import { join } from 'path';
+import {
+  ProductEmailData,
+  productCreatedTemplate,
+  welcomeTemplate,
+} from '../mail/mail.template';
 @Injectable()
 export class MailService {
   private transporter = nodemailer.createTransport({
@@ -13,17 +18,26 @@ export class MailService {
     },
   });
 
-  async sendMail(to: string,name:string) {
+  async sendMail(
+    to: string,
+    name: string,
+    product?: ProductEmailData,
+  ) {
     try {
       const mailOptions = {
         from: process.env.MAIL_USER,
         to,
-        subject: 'Test Email',
-        html: welcomeTemplate(name),
-        attachments: [{
-            filename:'pdf-test.pdf',
-            path:'./src/mail/attachments/pdf-test.pdf',
-        }]
+        subject: product ? 'Product added successfully' : 'Test Email',
+        html: product ? productCreatedTemplate(name, product) : welcomeTemplate(name),
+        attachments: product
+          ? product.images.map((image) => ({
+              filename: image.split('/').pop(),
+              path: join(process.cwd(), image.replace(/^\//, '')),
+            }))
+          : [{
+              filename: 'pdf-test.pdf',
+              path: './src/mail/attachments/pdf-test.pdf',
+            }],
       };
 
       await this.transporter.sendMail(mailOptions);

@@ -58,7 +58,9 @@ ps://nodejs.org/api/report.html
 
 # Test files
 *.spec.ts
-*.test.tsreport.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+*.test.ts
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+*.e2e-spec.ts
 
 # Uploaded product images
 /uploads/

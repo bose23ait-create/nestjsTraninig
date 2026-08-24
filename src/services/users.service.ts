@@ -92,14 +92,24 @@ export class UsersService {
         throw new UnauthorizedException(USER_MESSAGES.roleNotSeeded);
       }
 
+      const roleName = role.name;
       const payload = {
         sub: user._id,
         email: user.email,
-        role: role.name,
+        role: roleName,
+      };
+
+      const safeUser = {
+        id: user._id.toString(),
+        _id: user._id.toString(),
+        name: user.name,
+        email: user.email,
+        role: roleName,
       };
 
       return {
         [AUTH_CONFIG.accessTokenKey]: this.jwtService.sign(payload),
+        user: safeUser,
       };
     } catch (error) {
       if (error instanceof UnauthorizedException) {

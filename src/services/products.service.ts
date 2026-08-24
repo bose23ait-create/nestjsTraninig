@@ -7,6 +7,19 @@ import { UpdateProductDto } from '../dto/update.dto';
 
 import { ProductFilterDto } from '../dto/filter.dto';
 
+export interface ProductListResponse {
+  items: Product[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+  counts: {
+    all: number;
+    available: number;
+    soldOut: number;
+  };
+}
+
 @Injectable()
 export class ProductsService {
   constructor(
@@ -25,7 +38,7 @@ export class ProductsService {
     }
   }
 
-  async getAllProducts(filterDto: ProductFilterDto): Promise<Product[]> {
+  async getAllProducts(filterDto: ProductFilterDto): Promise<ProductListResponse> {
     try {
       const filter: Record<string, any> = {};
 
@@ -48,8 +61,30 @@ export class ProductsService {
         }
       }
 
-      const products = await this.productModel.find(filter).exec();
-      return products;
+      const page = filterDto.page ?? 1;
+      const limit = filterDto.limit ?? 8;
+      const sortBy = filterDto.sortBy ?? 'name';
+      const total = await this.productModel.countDocuments(filter).exec();
+      const items = await this.productModel
+        .find(filter)
+        .sort({ [sortBy]: 1 })
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .exec();
+      const [all, available, soldOut] = await Promise.all([
+        this.productModel.countDocuments({}).exec(),
+        this.productModel.countDocuments({ stock: { $gt: 0 } }).exec(),
+        this.productModel.countDocuments({ stock: { $eq: 0 } }).exec(),
+      ]);
+
+      return {
+        items,
+        total,
+        page,
+        limit,
+        totalPages: Math.max(1, Math.ceil(total / limit)),
+        counts: { all, available, soldOut },
+      };
     } catch (error) {
       throw error;
     }

@@ -20,7 +20,7 @@ import { randomUUID } from 'crypto';
 import { mkdirSync } from 'fs';
 import { extname } from 'path';
 import 'multer';
-import { ProductsService } from '../services/products.service';
+import { ProductsService, ProductListResponse } from '../services/products.service';
 import { CreateProductDto } from '../dto/product.dto';
 import { Product } from '../schemas/product.schemas';
 import { UpdateProductDto } from '../dto/update.dto';
@@ -119,7 +119,7 @@ export class ProductsController {
   @UseGuards(JwtAuthGuard)
   async getAllProducts(
     @Query() filterDto: ProductFilterDto,
-  ): Promise<Product[]> {
+  ): Promise<ProductListResponse> {
     try {
       return this.productsService.getAllProducts(filterDto);
     } catch (error) {
@@ -147,15 +147,21 @@ export class ProductsController {
     @UploadedFiles() images: Express.Multer.File[] = [],
   ): Promise<Product | null> {
     try {
+      const { existingImages, ...productFields } = updateProductDto as UpdateProductDto & {
+        existingImages?: string[] | string;
+      };
+      const retainedImages = existingImages
+        ? (Array.isArray(existingImages) ? existingImages : [existingImages]).filter(Boolean)
+        : [];
       const updateData =
-        images.length > 0
+        images.length > 0 || existingImages !== undefined
           ? {
-              ...updateProductDto,
+              ...productFields,
               images: images.map(
                 (file) => `/uploads/products/${file.filename}`,
-              ),
+              ).concat(retainedImages),
             }
-          : updateProductDto;
+          : productFields;
 
       return this.productsService.updateProduct(id, updateData);
     } catch (error) {

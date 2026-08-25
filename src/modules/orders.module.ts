@@ -10,8 +10,11 @@ import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AUTH_CONFIG } from '../constants/users.constants';
 
+import { BullModule } from '@nestjs/bullmq';
+
 @Module({
   imports: [
+    BullModule.registerQueue({ name: 'email' }),
     MongooseModule.forFeature([
       { name: Order.name, schema: OrderSchema },
       { name: Product.name, schema: ProductSchema },

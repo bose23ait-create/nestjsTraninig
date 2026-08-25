@@ -284,3 +284,124 @@ export const productCreatedTemplate = (
     </html>
   `;
 };
+
+export interface OrderEmailData {
+  orderId: string;
+  total: number;
+  status: string;
+  customerDetails: {
+    name: string;
+    email: string;
+    phone: string;
+    address: string;
+    city: string;
+    state: string;
+    postalCode: string;
+  };
+  items: Array<{
+    name: string;
+    quantity: number;
+    price: number;
+  }>;
+}
+
+const renderOrderItems = (items: OrderEmailData['items']) => {
+  return items
+    .map(
+      (item) => `
+    <div style="padding: 12px 0; border-top: 1px solid #e5e7eb; display: flex; justify-content: space-between;">
+      <span style="color: #4b5563;">${item.name} (x${item.quantity})</span>
+      <strong style="color: #111827;">₹${(item.price * item.quantity).toFixed(2)}</strong>
+    </div>
+  `,
+    )
+    .join('');
+};
+
+export const orderCreatedTemplate = (name: string, order: OrderEmailData) => {
+  return `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Order Confirmation</title>
+      </head>
+      <body style="margin: 0; padding: 0; background-color: #f3f4f6; font-family: Arial, Helvetica, sans-serif;">
+        <div style="max-width: 600px; margin: 30px auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; border: 1px solid #e5e7eb;">
+          <div style="background-color: #2563eb; padding: 30px 20px; text-align: center; color: #ffffff;">
+            <h1 style="margin: 0; font-size: 26px;">Order Confirmed!</h1>
+            <p style="margin: 10px 0 0; font-size: 14px; opacity: 0.9;">Thank you for your purchase.</p>
+          </div>
+          <div style="padding: 30px;">
+            <p style="margin: 0 0 15px; color: #374151; font-size: 16px;">Hello <strong>${name}</strong>,</p>
+            <p style="margin: 0 0 25px; color: #6b7280; font-size: 15px; line-height: 1.6;">
+              We've received your order <strong>#${order.orderId}</strong> and it is now <strong>${order.status}</strong>.
+            </p>
+            <div style="background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 10px; padding: 24px;">
+              <h2 style="margin: 0 0 15px; color: #111827; font-size: 20px;">Order Summary</h2>
+              ${renderOrderItems(order.items)}
+              <div style="padding: 16px 0 0; border-top: 2px solid #e5e7eb; margin-top: 8px;">
+                <span style="color: #111827; font-weight: bold; font-size: 18px;">Total</span>
+                <strong style="float: right; color: #16a34a; font-size: 18px;">₹${order.total.toFixed(2)}</strong>
+              </div>
+            </div>
+            <div style="margin-top: 25px;">
+              <h3 style="color: #111827; font-size: 16px;">Shipping Details</h3>
+              <p style="color: #4b5563; font-size: 14px; line-height: 1.5;">
+                ${order.customerDetails.name}<br/>
+                ${order.customerDetails.address}<br/>
+                ${order.customerDetails.city}, ${order.customerDetails.state} ${order.customerDetails.postalCode}<br/>
+                Phone: ${order.customerDetails.phone}
+              </p>
+            </div>
+            <p style="margin: 30px 0 0; color: #4b5563; font-size: 15px; line-height: 1.6;">
+              Regards,<br /><strong>My Application Team</strong>
+            </p>
+          </div>
+        </div>
+      </body>
+    </html>
+  `;
+};
+
+export const orderStatusUpdateTemplate = (
+  name: string,
+  order: OrderEmailData,
+) => {
+  return `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Order Status Update</title>
+      </head>
+      <body style="margin: 0; padding: 0; background-color: #f3f4f6; font-family: Arial, Helvetica, sans-serif;">
+        <div style="max-width: 600px; margin: 30px auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; border: 1px solid #e5e7eb;">
+          <div style="background-color: #2563eb; padding: 30px 20px; text-align: center; color: #ffffff;">
+            <h1 style="margin: 0; font-size: 26px;">Order Status Update</h1>
+            <p style="margin: 10px 0 0; font-size: 14px; opacity: 0.9;">There is an update on your order #${order.orderId}</p>
+          </div>
+          <div style="padding: 30px;">
+            <p style="margin: 0 0 15px; color: #374151; font-size: 16px;">Hello <strong>${name}</strong>,</p>
+            <p style="margin: 0 0 25px; color: #6b7280; font-size: 15px; line-height: 1.6;">
+              Your order status has been updated to: <strong style="color: #16a34a; font-size: 18px; text-transform: uppercase;">${order.status}</strong>
+            </p>
+            <div style="background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 10px; padding: 24px;">
+              <h2 style="margin: 0 0 15px; color: #111827; font-size: 20px;">Order Summary</h2>
+              ${renderOrderItems(order.items)}
+              <div style="padding: 16px 0 0; border-top: 2px solid #e5e7eb; margin-top: 8px;">
+                <span style="color: #111827; font-weight: bold; font-size: 18px;">Total</span>
+                <strong style="float: right; color: #16a34a; font-size: 18px;">₹${order.total.toFixed(2)}</strong>
+              </div>
+            </div>
+            <p style="margin: 30px 0 0; color: #4b5563; font-size: 15px; line-height: 1.6;">
+              Regards,<br /><strong>My Application Team</strong>
+            </p>
+          </div>
+        </div>
+      </body>
+    </html>
+  `;
+};

@@ -2,12 +2,14 @@ import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Job } from 'bullmq';
 
 import { MailService } from '../services/mail.service';
-import type { ProductEmailData } from '../mail/mail.template';
+import type { ProductEmailData, OrderEmailData } from '../mail/mail.template';
 
 interface MailJobData {
   to: string;
   name: string;
   product?: ProductEmailData;
+  order?: OrderEmailData;
+  type?: string;
 }
 
 @Processor('email')
@@ -22,9 +24,10 @@ export class MailProcessor extends WorkerHost {
       console.log('Job data:', job.data);
 
       if (job.name === 'send-email') {
-        const { to, name, product } = job.data as unknown as MailJobData;
+        const { to, name, product, order, type } =
+          job.data as unknown as MailJobData;
 
-        await this.mailService.sendMail(to, name, product);
+        await this.mailService.sendMail(to, name, product, order, type);
 
         console.log(`Email sent successfully to ${to}`);
       }

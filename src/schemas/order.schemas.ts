@@ -60,10 +60,10 @@ export class Order {
   total!: number;
 
   @Prop({
-    enum: ['pending', 'processing', 'shipped', 'completed', 'cancelled'],
+    enum: ['pending', 'processing', 'shipped', 'completed'],
     default: 'pending',
   })
-  status!: 'pending' | 'processing' | 'shipped' | 'completed' | 'cancelled';
+  status!: 'pending' | 'processing' | 'shipped' | 'completed';
 }
 
 export const OrderSchema = SchemaFactory.createForClass(Order);

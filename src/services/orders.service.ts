@@ -133,7 +133,7 @@ export class OrdersService {
 
   async updateOrderStatus(
     orderId: string,
-    status: 'pending' | 'processing' | 'shipped' | 'completed' | 'cancelled',
+    status: 'pending' | 'processing' | 'shipped' | 'completed' ,
   ): Promise<Order | null> {
     const order = await this.orderModel
       .findByIdAndUpdate(orderId, { status }, { new: true })

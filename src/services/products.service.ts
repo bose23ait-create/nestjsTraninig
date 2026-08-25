@@ -38,7 +38,9 @@ export class ProductsService {
     }
   }
 
-  async getAllProducts(filterDto: ProductFilterDto): Promise<ProductListResponse> {
+  async getAllProducts(
+    filterDto: ProductFilterDto,
+  ): Promise<ProductListResponse> {
     try {
       const filter: Record<string, any> = {};
 

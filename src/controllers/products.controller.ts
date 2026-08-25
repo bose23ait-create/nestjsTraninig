@@ -20,7 +20,10 @@ import { randomUUID } from 'crypto';
 import { mkdirSync } from 'fs';
 import { extname } from 'path';
 import 'multer';
-import { ProductsService, ProductListResponse } from '../services/products.service';
+import {
+  ProductsService,
+  ProductListResponse,
+} from '../services/products.service';
 import { CreateProductDto } from '../dto/product.dto';
 import { Product } from '../schemas/product.schemas';
 import { UpdateProductDto } from '../dto/update.dto';
@@ -147,19 +150,23 @@ export class ProductsController {
     @UploadedFiles() images: Express.Multer.File[] = [],
   ): Promise<Product | null> {
     try {
-      const { existingImages, ...productFields } = updateProductDto as UpdateProductDto & {
-        existingImages?: string[] | string;
-      };
+      const { existingImages, ...productFields } =
+        updateProductDto as UpdateProductDto & {
+          existingImages?: string[] | string;
+        };
       const retainedImages = existingImages
-        ? (Array.isArray(existingImages) ? existingImages : [existingImages]).filter(Boolean)
+        ? (Array.isArray(existingImages)
+            ? existingImages
+            : [existingImages]
+          ).filter(Boolean)
         : [];
       const updateData =
         images.length > 0 || existingImages !== undefined
           ? {
               ...productFields,
-              images: images.map(
-                (file) => `/uploads/products/${file.filename}`,
-              ).concat(retainedImages),
+              images: images
+                .map((file) => `/uploads/products/${file.filename}`)
+                .concat(retainedImages),
             }
           : productFields;
 

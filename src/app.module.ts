@@ -14,6 +14,7 @@ import { MailModule } from './modules/mail.module';
 
 import { ScheduleModule } from '@nestjs/schedule';
 import { OrdersModule } from './modules/orders.module';
+import { StripeModule } from './modules/stripe/stripe.module';
 
 import { BullModule } from '@nestjs/bullmq';
 
@@ -35,6 +36,7 @@ import { BullModule } from '@nestjs/bullmq';
     SeedModule,
     ProductsModule,
     MailModule,
+    StripeModule,
     OrdersModule,
   ],
   controllers: [AppController],

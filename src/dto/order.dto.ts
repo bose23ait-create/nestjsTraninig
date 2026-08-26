@@ -65,5 +65,5 @@ export class CreateOrderDto {
 export class UpdateOrderStatusDto {
   @IsString()
   @IsIn(['pending', 'processing', 'shipped', 'completed'])
-  status!: 'pending' | 'processing' | 'shipped' | 'completed' ;
+  status!: 'pending' | 'processing' | 'shipped' | 'completed';
 }

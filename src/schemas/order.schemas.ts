@@ -64,6 +64,15 @@ export class Order {
     default: 'pending',
   })
   status!: 'pending' | 'processing' | 'shipped' | 'completed';
+
+  @Prop({
+    enum: ['pending', 'paid', 'failed'],
+    default: 'pending',
+  })
+  paymentStatus!: 'pending' | 'paid' | 'failed';
+
+  @Prop({ type: String })
+  stripeSessionId?: string;
 }
 
 export const OrderSchema = SchemaFactory.createForClass(Order);

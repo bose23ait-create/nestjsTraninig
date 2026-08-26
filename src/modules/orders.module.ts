@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { OrdersController } from '../controllers/orders.controller';
 import { OrdersService } from '../services/orders.service';
@@ -11,6 +11,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AUTH_CONFIG } from '../constants/users.constants';
 
 import { BullModule } from '@nestjs/bullmq';
+import { StripeModule } from './stripe/stripe.module';
 
 @Module({
   imports: [
@@ -26,8 +27,10 @@ import { BullModule } from '@nestjs/bullmq';
         secret: config.get<string>('JWT_SECRET') || AUTH_CONFIG.fallbackSecret,
       }),
     }),
+    forwardRef(() => StripeModule),
   ],
   providers: [OrdersService, JwtAuthGuard, RolesGuard],
   controllers: [OrdersController],
+  exports: [OrdersService],
 })
 export class OrdersModule {}

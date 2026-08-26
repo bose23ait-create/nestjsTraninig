@@ -10,7 +10,7 @@ import {
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import type { AuthenticatedRequest } from '../auth/jwt-auth.guard';
-import { CreateOrderDto, UpdateOrderStatusDto } from '../dto/order.dto';
+import { CreateOrderDto, UpdateOrderStatusDto, RequestCancellationDto } from '../dto/order.dto';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
 import { ADMIN_ROLE } from '../constants/users.constants';
@@ -46,5 +46,28 @@ export class OrdersController {
   @Roles(ADMIN_ROLE)
   updateStatus(@Param('id') id: string, @Body() dto: UpdateOrderStatusDto) {
     return this.ordersService.updateOrderStatus(id, dto.status);
+  }
+
+  @Patch(':id/request-cancellation')
+  requestCancellation(
+    @Param('id') id: string,
+    @Body() dto: RequestCancellationDto,
+    @Req() request: AuthenticatedRequest,
+  ) {
+    return this.ordersService.requestCancellation(request.user!.sub, id, dto.reason);
+  }
+
+  @Patch(':id/approve-cancellation')
+  @UseGuards(RolesGuard)
+  @Roles(ADMIN_ROLE)
+  approveCancellation(@Param('id') id: string) {
+    return this.ordersService.approveCancellation(id);
+  }
+
+  @Patch(':id/reject-cancellation')
+  @UseGuards(RolesGuard)
+  @Roles(ADMIN_ROLE)
+  rejectCancellation(@Param('id') id: string) {
+    return this.ordersService.rejectCancellation(id);
   }
 }

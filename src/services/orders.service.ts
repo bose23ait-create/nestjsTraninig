@@ -219,4 +219,96 @@ export class OrdersService {
   ): Promise<void> {
     await this.verifyPayment(sessionId);
   }
+
+  async requestCancellation(userId: string, orderId: string, reason: string): Promise<Order> {
+    const userObjectId = Types.ObjectId.isValid(userId) ? new Types.ObjectId(userId) : userId;
+    const order = await this.orderModel.findOne({ 
+      _id: orderId,
+      $or: [{ userId: userObjectId }, { userId }]
+    }).exec();
+    
+    if (!order) {
+      throw new BadRequestException('Order not found or does not belong to you');
+    }
+
+    if (order.status !== 'pending' && order.status !== 'processing') {
+      throw new BadRequestException('Order cannot be cancelled at this stage');
+    }
+
+    order.status = 'cancellation_requested';
+    order.cancellationReason = reason;
+    await order.save();
+
+    return order.toObject();
+  }
+
+  async approveCancellation(orderId: string): Promise<Order> {
+    const order = await this.orderModel.findById(orderId).exec();
+    if (!order) {
+      throw new BadRequestException('Order not found');
+    }
+
+    if (order.status !== 'cancellation_requested') {
+      throw new BadRequestException('Order has not requested cancellation');
+    }
+
+    // Refund Stripe Payment
+    if (order.stripeSessionId && order.paymentStatus === 'paid') {
+      try {
+        await this.stripeService.refundPayment(order.stripeSessionId);
+        order.paymentStatus = 'refunded';
+      } catch (err) {
+        console.error('Failed to refund stripe payment', err);
+        throw new BadRequestException('Failed to process stripe refund');
+      }
+    }
+
+    // Restore Stock
+    for (const item of order.items) {
+      await this.productModel
+        .updateOne(
+          { _id: item.productId },
+          { $inc: { stock: item.quantity } },
+        )
+        .exec();
+    }
+
+    order.status = 'cancelled';
+    await order.save();
+    
+    // Optional: send cancellation email
+    await this.emailQueue.add('send-email', {
+      to: order.customerDetails.email,
+      name: order.customerDetails.name,
+      type: 'order-status',
+      order: {
+        orderId: order._id.toString(),
+        total: order.total,
+        status: order.status,
+        customerDetails: order.customerDetails,
+        items: order.items,
+      },
+    });
+
+    return order.toObject();
+  }
+
+  async rejectCancellation(orderId: string): Promise<Order> {
+    const order = await this.orderModel.findById(orderId).exec();
+    if (!order) {
+      throw new BadRequestException('Order not found');
+    }
+
+    if (order.status !== 'cancellation_requested') {
+      throw new BadRequestException('Order has not requested cancellation');
+    }
+
+    // Move back to processing or pending. Let's assume processing to be safe, 
+    // or just let admin update status manually later. We will default back to 'processing'.
+    order.status = 'processing';
+    order.cancellationReason = undefined;
+    
+    await order.save();
+    return order.toObject();
+  }
 }

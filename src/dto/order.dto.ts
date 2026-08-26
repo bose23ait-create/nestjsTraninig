@@ -67,3 +67,9 @@ export class UpdateOrderStatusDto {
   @IsIn(['pending', 'processing', 'shipped', 'completed'])
   status!: 'pending' | 'processing' | 'shipped' | 'completed';
 }
+
+export class RequestCancellationDto {
+  @IsString()
+  @IsNotEmpty()
+  reason!: string;
+}

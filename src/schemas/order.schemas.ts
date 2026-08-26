@@ -60,19 +60,22 @@ export class Order {
   total!: number;
 
   @Prop({
-    enum: ['pending', 'processing', 'shipped', 'completed'],
+    enum: ['pending', 'processing', 'shipped', 'completed', 'cancellation_requested', 'cancelled'],
     default: 'pending',
   })
-  status!: 'pending' | 'processing' | 'shipped' | 'completed';
+  status!: 'pending' | 'processing' | 'shipped' | 'completed' | 'cancellation_requested' | 'cancelled';
 
   @Prop({
-    enum: ['pending', 'paid', 'failed'],
+    enum: ['pending', 'paid', 'failed', 'refunded'],
     default: 'pending',
   })
-  paymentStatus!: 'pending' | 'paid' | 'failed';
+  paymentStatus!: 'pending' | 'paid' | 'failed' | 'refunded';
 
   @Prop({ type: String })
   stripeSessionId?: string;
+
+  @Prop({ type: String })
+  cancellationReason?: string;
 }
 
 export const OrderSchema = SchemaFactory.createForClass(Order);

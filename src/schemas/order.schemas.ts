@@ -60,10 +60,23 @@ export class Order {
   total!: number;
 
   @Prop({
-    enum: ['pending', 'processing', 'shipped', 'completed', 'cancellation_requested', 'cancelled'],
+    enum: [
+      'pending',
+      'processing',
+      'shipped',
+      'completed',
+      'cancellation_requested',
+      'cancelled',
+    ],
     default: 'pending',
   })
-  status!: 'pending' | 'processing' | 'shipped' | 'completed' | 'cancellation_requested' | 'cancelled';
+  status!:
+    | 'pending'
+    | 'processing'
+    | 'shipped'
+    | 'completed'
+    | 'cancellation_requested'
+    | 'cancelled';
 
   @Prop({
     enum: ['pending', 'paid', 'failed', 'refunded'],

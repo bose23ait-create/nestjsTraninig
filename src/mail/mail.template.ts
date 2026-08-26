@@ -387,6 +387,7 @@ export const orderStatusUpdateTemplate = (
             <p style="margin: 0 0 15px; color: #374151; font-size: 16px;">Hello <strong>${name}</strong>,</p>
             <p style="margin: 0 0 25px; color: #6b7280; font-size: 15px; line-height: 1.6;">
               Your order status has been updated to: <strong style="color: #16a34a; font-size: 18px; text-transform: uppercase;">${order.status}</strong>
+              ${order.status === 'cancelled' ? '<br/><br/><strong>Refund Processed:</strong> A full refund of ₹' + order.total.toFixed(2) + ' has been initiated to your original payment method. Please allow a few business days for the amount to reflect in your account.' : ''}
             </p>
             <div style="background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 10px; padding: 24px;">
               <h2 style="margin: 0 0 15px; color: #111827; font-size: 20px;">Order Summary</h2>

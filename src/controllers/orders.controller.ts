@@ -10,7 +10,11 @@ import {
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import type { AuthenticatedRequest } from '../auth/jwt-auth.guard';
-import { CreateOrderDto, UpdateOrderStatusDto, RequestCancellationDto } from '../dto/order.dto';
+import {
+  CreateOrderDto,
+  UpdateOrderStatusDto,
+  RequestCancellationDto,
+} from '../dto/order.dto';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
 import { ADMIN_ROLE } from '../constants/users.constants';
@@ -54,7 +58,11 @@ export class OrdersController {
     @Body() dto: RequestCancellationDto,
     @Req() request: AuthenticatedRequest,
   ) {
-    return this.ordersService.requestCancellation(request.user!.sub, id, dto.reason);
+    return this.ordersService.requestCancellation(
+      request.user!.sub,
+      id,
+      dto.reason,
+    );
   }
 
   @Patch(':id/approve-cancellation')

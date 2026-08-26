@@ -72,7 +72,7 @@ export class StripeService {
 
   async refundPayment(sessionId: string) {
     const session = await this.stripe.checkout.sessions.retrieve(sessionId);
-    
+
     if (!session.payment_intent) {
       throw new Error('No payment intent found for this session.');
     }

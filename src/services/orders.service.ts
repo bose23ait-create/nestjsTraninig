@@ -35,46 +35,40 @@ export class OrdersService {
     }
 
     const reserved: ProductDocument[] = [];
-    try {
-      for (const [productId, quantity] of quantities) {
-        const product = await this.productModel
-          .findOne({ _id: productId, stock: { $gte: quantity } })
-          .exec();
-        if (!product) {
-          throw new BadRequestException(
-            'One or more products are out of stock',
-          );
-        }
-        reserved.push(product);
+    for (const [productId, quantity] of quantities) {
+      const product = await this.productModel
+        .findOne({ _id: productId, stock: { $gte: quantity } })
+        .exec();
+      if (!product) {
+        throw new BadRequestException('One or more products are out of stock');
       }
-
-      const items = reserved.map((product) => {
-        const quantity = quantities.get(product._id.toString())!;
-        return {
-          productId: product._id,
-          name: product.name,
-          price: product.price,
-          quantity,
-          images: product.images,
-        };
-      });
-      const total = items.reduce(
-        (sum, item) => sum + item.price * item.quantity,
-        0,
-      );
-      const session = await this.stripeService.createCheckoutSession(
-        userId,
-        items,
-        createOrderDto.customerDetails,
-        total,
-      );
-
-      // Return a dummy order object to satisfy frontend, but it's not saved to DB
-      const dummyOrder = { _id: 'pending' } as unknown as Order;
-      return { order: dummyOrder, checkoutUrl: session.url };
-    } catch (error) {
-      throw error;
+      reserved.push(product);
     }
+
+    const items = reserved.map((product) => {
+      const quantity = quantities.get(product._id.toString())!;
+      return {
+        productId: product._id,
+        name: product.name,
+        price: product.price,
+        quantity,
+        images: product.images,
+      };
+    });
+    const total = items.reduce(
+      (sum, item) => sum + item.price * item.quantity,
+      0,
+    );
+    const session = await this.stripeService.createCheckoutSession(
+      userId,
+      items,
+      createOrderDto.customerDetails,
+      total,
+    );
+
+    // Return a dummy order object to satisfy frontend, but it's not saved to DB
+    const dummyOrder = { _id: 'pending' } as unknown as Order;
+    return { order: dummyOrder, checkoutUrl: session.url };
   }
 
   findUserOrders(userId: string): Promise<Order[]> {
@@ -220,15 +214,25 @@ export class OrdersService {
     await this.verifyPayment(sessionId);
   }
 
-  async requestCancellation(userId: string, orderId: string, reason: string): Promise<Order> {
-    const userObjectId = Types.ObjectId.isValid(userId) ? new Types.ObjectId(userId) : userId;
-    const order = await this.orderModel.findOne({ 
-      _id: orderId,
-      $or: [{ userId: userObjectId }, { userId }]
-    }).exec();
-    
+  async requestCancellation(
+    userId: string,
+    orderId: string,
+    reason: string,
+  ): Promise<Order> {
+    const userObjectId = Types.ObjectId.isValid(userId)
+      ? new Types.ObjectId(userId)
+      : userId;
+    const order = await this.orderModel
+      .findOne({
+        _id: orderId,
+        $or: [{ userId: userObjectId }, { userId }],
+      })
+      .exec();
+
     if (!order) {
-      throw new BadRequestException('Order not found or does not belong to you');
+      throw new BadRequestException(
+        'Order not found or does not belong to you',
+      );
     }
 
     if (order.status !== 'pending' && order.status !== 'processing') {
@@ -266,16 +270,13 @@ export class OrdersService {
     // Restore Stock
     for (const item of order.items) {
       await this.productModel
-        .updateOne(
-          { _id: item.productId },
-          { $inc: { stock: item.quantity } },
-        )
+        .updateOne({ _id: item.productId }, { $inc: { stock: item.quantity } })
         .exec();
     }
 
     order.status = 'cancelled';
     await order.save();
-    
+
     // Optional: send cancellation email
     await this.emailQueue.add('send-email', {
       to: order.customerDetails.email,
@@ -303,11 +304,11 @@ export class OrdersService {
       throw new BadRequestException('Order has not requested cancellation');
     }
 
-    // Move back to processing or pending. Let's assume processing to be safe, 
+    // Move back to processing or pending. Let's assume processing to be safe,
     // or just let admin update status manually later. We will default back to 'processing'.
     order.status = 'processing';
     order.cancellationReason = undefined;
-    
+
     await order.save();
     return order.toObject();
   }
